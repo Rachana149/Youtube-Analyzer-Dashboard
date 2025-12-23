@@ -1,0 +1,15 @@
+streamlit>=1.32.0
+google-api-python-client==2.111.0
+google-auth
+google-auth-httplib2
+google-auth-oauthlib
+pandas
+numpy
+isodate
+matplotlib
+altair
+plotly
+seaborn
+pillow
+requests
+reportlab
