@@ -19,23 +19,23 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 st.set_page_config(page_title="YouTube Analyzer", layout="wide")
 
 st.markdown("""
+
 <style>
 .stApp {
     background: linear-gradient(135deg, #1a0000 0%, #8b0000 50%, #000000 100%);
     background-attachment: fixed;
 }
+
 h1, h2, h3, label {
     color: white !important;
     font-weight: 600;
 }
+
 section[data-testid="stSidebar"] {
     background: rgba(0,0,0,0.2);
     backdrop-filter: blur(6px);
 }
-</style>
-""", unsafe_allow_html=True)
-st.markdown("""
-<style>
+
 .logo-container img {
     border-radius: 50%;
     width: 130px;
@@ -51,10 +51,7 @@ st.markdown("""
     box-shadow: 0px 0px 35px rgba(255, 0, 0, 0.9);
     border-color: #ff0000;
 }
-</style>
-""", unsafe_allow_html=True)
-st.markdown("""
-<style>
+
 div.stDownloadButton > button {
     background-color: #00c4ff;
     color: black;
@@ -64,6 +61,7 @@ div.stDownloadButton > button {
     font-weight: 600;
     transition: 0.3s;
 }
+
 div.stDownloadButton > button:hover {
     transform: scale(1.05);
     background-color: #73eaff;
