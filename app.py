@@ -122,29 +122,34 @@ if not st.session_state.start_dashboard:
 def extract_channel_id(url, youtube):
     url = url.strip()
 
-    
+    # Case 1: Full channel ID URL
     if "youtube.com/channel/" in url:
         return url.split("channel/")[1].split("/")[0]
 
-   
+    # Case 2: Handle URL (@tseries)
     if "@" in url:
-        handle = url.split("@")[1].split("/")[0]  
+        handle = url.split("@")[1].split("/")[0]
+
         try:
-            res = youtube.channels().list(
-                part="id",
-                forHandle=handle
+            search_response = youtube.search().list(
+                part="snippet",
+                q=handle,
+                type="channel",
+                maxResults=1
             ).execute()
-            if res.get("items"):
-                return res["items"][0]["id"]
+
+            if search_response.get("items"):
+                return search_response["items"][0]["snippet"]["channelId"]
         except Exception as e:
-            st.error(f"Handle lookup failed: {e}")
+            st.error(f"Handle search failed: {e}")
             return None
 
-    
+    # Case 3: Direct channel ID
     if url.startswith("UC") and len(url) > 20:
         return url
 
     return None
+
 
 
 
