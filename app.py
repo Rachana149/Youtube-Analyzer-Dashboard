@@ -122,22 +122,30 @@ if not st.session_state.start_dashboard:
 def extract_channel_id(url, youtube):
     url = url.strip()
 
+    
     if "youtube.com/channel/" in url:
-        return url.split("channel/")[1].split("?")[0]
+        return url.split("channel/")[1].split("/")[0]
 
+   
     if "@" in url:
-        handle = url.split("@")[1]
+        handle = url.split("@")[1].split("/")[0]  
         try:
-            req = youtube.channels().list(part="id", forHandle=handle).execute()
-            if req.get("items"):
-                return req["items"][0]["id"]
-        except:
+            res = youtube.channels().list(
+                part="id",
+                forHandle=handle
+            ).execute()
+            if res.get("items"):
+                return res["items"][0]["id"]
+        except Exception as e:
+            st.error(f"Handle lookup failed: {e}")
             return None
 
+    
     if url.startswith("UC") and len(url) > 20:
         return url
 
     return None
+
 
 
 def get_uploads_playlist_id(channel_id, youtube):
@@ -204,14 +212,13 @@ def get_video_stats(video_ids, youtube):
 
             category_id = item["snippet"].get("categoryId", None)
 
-            # Detect SHORTS (logic)
             is_short = True if duration_minutes < 1 or "short" in snippet.get("title", "").lower() else False
 
             data.append({
                 "VideoID": item["id"],
                 "Title": snippet.get("title", ""),
                 "CategoryID": category_id,
-                "Type": "Short" if is_short else "Long",  # 🔥 NEW FIELD ADDED
+                "Type": "Short" if is_short else "Long",  
                 "Published": snippet.get("publishedAt", "").split("T")[0],
                 "Views": view_count,
                 "Likes": like_count,
@@ -330,12 +337,12 @@ if st.session_state.start_dashboard:
     subscribers_display = format_number(subscribers)
 
     k1, k2, k3, k4, k5, k6 = st.columns(6)
-    k1.metric("🎥 Total Videos", format_number(total_videos))
-    k2.metric("👁 Total Views", format_number(total_views))
-    k3.metric("👤 Subscribers", subscribers_display)
-    k4.metric("📈 Avg Views", format_number(avg_views))
-    k5.metric("👍 Engagement", f"{avg_engagement}%")
-    k6.metric("🔥 Top Video", top_video)
+    k1.metric(" Total Videos", format_number(total_videos))
+    k2.metric(" Total Views", format_number(total_views))
+    k3.metric("Subscribers", subscribers_display)
+    k4.metric(" Avg Views", format_number(avg_views))
+    k5.metric(" Engagement", f"{avg_engagement}%")
+    k6.metric(" Top Video", top_video)
 
 
     # -------- Tabs --------
@@ -369,7 +376,7 @@ if st.session_state.start_dashboard:
      df["Views_M"] = df["Views"] / 1_000_000  
      df["Likes_K"] = df["Likes"] / 1_000     
 
-     st.subheader("📈Views vs Likes Trend")
+     st.subheader("Views vs Likes Trend")
 
      base = alt.Chart(df.reset_index()).encode(
      x=alt.X("index:Q", title="Video Number")
@@ -407,14 +414,14 @@ if st.session_state.start_dashboard:
     f"""
     💡 **Quick Insight:**
 
-    - 📈 Views & Likes relation: **`{corr}` correlation**
-      → {"Strong engagement 🔥" if corr > 0.6 else "Weak engagement — content response varies 🎭"}
+    -  Views & Likes relation: **`{corr}` correlation**
+      → {"Strong engagement " if corr > 0.6 else "Weak engagement — content response varies "}
 
-    - 🏆 Top performing video:  
+    -  Top performing video:  
       **“{top_video[:50]}...”**
 
-    - 📊 Average Metrics:  
-      👁 Avg Views: **{avg_views:.2f}M** | 👍 Avg Likes: **{avg_likes:.1f}K**
+    -  Average Metrics:  
+       Avg Views: **{avg_views:.2f}M** | Avg Likes: **{avg_likes:.1f}K**
     """
 )
      st.divider()
@@ -433,7 +440,7 @@ if st.session_state.start_dashboard:
 
 
 
-     st.subheader("🔥 Top 10 Most Viewed Videos")
+     st.subheader("Top 10 Most Viewed Videos")
      top10 = df.sort_values(by="Views", ascending=False).head(10).reset_index(drop=True)
      import altair as alt
 
@@ -469,7 +476,7 @@ if st.session_state.start_dashboard:
 
     
      optimal_len = df.loc[df["Views"].idxmax(), "Duration (mins)"]
-     st.markdown(f"🎬 **Best performing video length:** Around **`{optimal_len} minutes`**.")
+     st.markdown(f" **Best performing video length:** Around **`{optimal_len} minutes`**.")
 
      st.divider()
 
@@ -529,7 +536,7 @@ if st.session_state.start_dashboard:
           share = round((category_views.max() / category_views.sum()) * 100, 2)
           st.markdown(
             f"💡 **Insight:** `{top_cat}` category dominates with **{share}% views** — "
-            f"audience clearly prefers this content.🔥"
+            f"audience clearly prefers this content."
         )
 
       else:
@@ -695,7 +702,7 @@ if st.session_state.start_dashboard:
 
    
       insight = (
-        " **Shorts are performing better in terms of average views. 🚀**"
+        " **Shorts are performing better in terms of average views. **"
         if compare_df["Avg Views (M)"].iloc[0] > compare_df["Avg Views (M)"].iloc[1]
         else " **Long videos attract more average views — audience prefers detailed content. 🎬**"
     )
@@ -813,17 +820,17 @@ if st.session_state.start_dashboard:
 
       st.markdown(
         f"""
-        🔥 **Highest Revenue Video:**  
-        👉 `{top_rev['Title'][:45]}...` — Estimated **${top_rev['Estimated_Revenue']:.2f}**
+         **Highest Revenue Video:**  
+         `{top_rev['Title'][:45]}...` — Estimated **${top_rev['Estimated_Revenue']:.2f}**
 
-        ⚠️ **Lowest Revenue Despite Views:**  
-        👉 `{low_rev['Title'][:45]}...` — Only **${low_rev['Estimated_Revenue']:.2f}**
+         **Lowest Revenue Despite Views:**  
+        `{low_rev['Title'][:45]}...` — Only **${low_rev['Estimated_Revenue']:.2f}**
 
-        📈 **Average Estimated Revenue Per Video:**  
+        **Average Estimated Revenue Per Video:**  
         💵 **${avg_rev:.2f}**
 
         ---
-        ### 🧠 Interpretation  
+        ### Interpretation  
         - High views ≠ High money — revenue depends on **content category & viewer geography**  
         - Educational / Tech categories generate **3x–6x more revenue per view**
         - Music & Entertainment gain **mass views but lower RPM**
@@ -894,7 +901,7 @@ if st.session_state.start_dashboard:
      st.info(" Use this insight to decide content strategy — जैसे अगर Likes & Views high correlate कर रहे हैं, तो बेहतर Call-to-Action, captions और thumbnails views बढ़ा सकते हैं।")
 
     with tab10:
-       st.subheader("🎯 Single Video Deep-Dive")
+       st.subheader("Single Video Deep-Dive")
 
        selected_title = st.selectbox(
         "Select a Video",
@@ -902,24 +909,25 @@ if st.session_state.start_dashboard:
     )
 
        video = df[df["Title"] == selected_title].iloc[0]
-       col1, col2, col3, col4 = st.columns(4)
 
+       col1, col2, col3, col4 = st.columns(4)
        col1.metric(" Views", format_number(video["Views"]))
        col2.metric(" Likes", format_number(video["Likes"]))
        col3.metric(" Comments", format_number(video["Comments"]))
        col4.metric(" Engagement", f"{video['Engagement (%)']}%")
-       st.markdown("###Video Details")
 
-       st.write(" **Title:**", video["Title"])
-       st.write(" **Category:**", video["Category"])
-       st.write(" **Duration:**", video["Duration (mins)"], "mins")
-       st.write(" **Published:**", video["Published"])
-       st.write(" **Type:**", video["Type"])
-       st.write(" **Video URL:**", video["URL"])
+       st.markdown("### Video Details")
+       st.write("**Title:**", video["Title"])
+       st.write("**Category:**", video["Category"])
+       st.write("**Duration:**", video["Duration (mins)"], "mins")
+       st.write("**Published:**", video["Published"])
+       st.write("**Type:**", video["Type"])
+       st.write("**Video URL:**", video["URL"])
+
        thumbnail_url = f"https://i.ytimg.com/vi/{video['VideoID']}/hqdefault.jpg"
-
        st.image(thumbnail_url, caption="Video Thumbnail", width=350)
-       st.markdown("### Performance Insight")
+
+       st.markdown("###  Performance Insight")
 
        if video["Views"] > df["Views"].mean():
         st.success("This video performed ABOVE average.")
@@ -930,9 +938,11 @@ if st.session_state.start_dashboard:
         st.success("Engagement is strong.")
        else:
         st.info("ℹ Engagement can be improved with better CTA or title.")
-        st.markdown("### Video vs Channel Average")
 
-        compare_df = pd.DataFrame({
+    # ✅ ALWAYS SHOW COMPARISON
+       st.markdown("###  Video vs Channel Average")
+
+       compare_df = pd.DataFrame({
         "Metric": ["Views", "Likes", "Comments"],
         "This Video": [
             video["Views"],
@@ -946,7 +956,7 @@ if st.session_state.start_dashboard:
         ]
     })
 
-        st.bar_chart(compare_df.set_index("Metric"))
+       st.bar_chart(compare_df.set_index("Metric"))
 
 
 
